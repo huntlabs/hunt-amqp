@@ -1,0 +1,13 @@
+{
+	"authors": [
+		"linsen"
+	],
+	"description": "A minimal D application.",
+	"license": "proprietary",
+	"name": "test",
+	"targetType": "executable",
+	"versions" : ["HUNT_DEBUG", "HUNT_NET_DEBUG"],
+	"dependencies": {
+		"hunt-proton": {"path": "../"}
+	}
+}
