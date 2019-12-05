@@ -106,7 +106,7 @@ class ProtonSaslClientAuthenticatorImpl : ProtonSaslAuthenticator {
       case SaslState.PN_SASL_PASS:
         done = true;
         _succeeded = true;
-        logInfo("PN_SASL_PASS !!!");
+        version(HUNT_DEBUG) logInfo("PN_SASL_PASS !!!");
         handler.handle(connection);
         break;
       default:

@@ -83,17 +83,17 @@ class ProtonSenderImpl : ProtonLinkImpl!ProtonSender , ProtonSender {
       throw new IllegalArgumentException("Message must have an address when using anonymous sender.");
     }
     // TODO: prevent odd combination of onRecieved callback + SenderSettleMode.SETTLED, or just allow it?
-    logInfo("tag ------------------ : %s", tag);
+    version(HUNT_DEBUG) logInfo("tag ------------------ : %s", tag);
     Delivery delivery = sender().delivery(tag); // start a new delivery..
     ProtonWritableBufferImpl buffer = new ProtonWritableBufferImpl();
     MessageImpl msg = cast(MessageImpl) message;
     msg.encode(buffer);
-    logInfof("bbbbbbbbbbbbbbbbbb %s ",buffer.getBuffer().array());
+    version(HUNT_DEBUG) logInfof("bbbbbbbbbbbbbbbbbb %s ",buffer.getBuffer().array());
     ReadableBuffer encoded = new ProtonReadableBufferImpl(buffer.getBuffer());
 
     int  ll  = sender().sendNoCopy(encoded); // 55
     if (link.getSenderSettleMode() == SenderSettleMode.SETTLED) {
-      logInfof("TTTTTTTTT %d", ll);
+      version(HUNT_DEBUG) logInfof("TTTTTTTTT %d", ll);
       delivery.settle();
     }
     sender().advance(); // ends the delivery.
@@ -105,7 +105,7 @@ class ProtonSenderImpl : ProtonLinkImpl!ProtonSender , ProtonSender {
     } else {
       protonDeliveryImpl.setAutoSettle(true);
     }
-    logInfof("send ---------------------- ");
+    version(HUNT_DEBUG) logInfof("send ---------------------- ");
     getSession().getConnectionImpl().flush();
 
     return protonDeliveryImpl;

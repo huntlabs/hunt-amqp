@@ -318,7 +318,7 @@ class ProtonConnectionImpl : ProtonConnection {
 
   public void flush() {
     if (transport !is null) {
-      logInfo("transport flush ------------------------------------");
+      version(HUNT_DEBUG) logInfo("transport flush ------------------------------------");
       transport.flush();
     }
   }

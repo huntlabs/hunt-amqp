@@ -14,7 +14,7 @@ import  hunt.util.Common;
 import  hunt.Enum;
 import std.concurrency : initOnce;
 
-class PRIORITY  : AbstractEnum!int
+class PRIORITY  : AbstractEnum!PRIORITY
 {
   //LOWEST(0), LOWER(1), LOW(2), MEDIUM(3), HIGH(4), HIGHER(5), HIGHEST(6);
 
