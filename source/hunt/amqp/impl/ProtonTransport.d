@@ -61,7 +61,6 @@ import hunt.concurrency.ScheduledThreadPoolExecutor;
 import hunt.concurrency.Executors;
 import hunt.concurrency.ExecutorService;
 import hunt.concurrency.Scheduler;
-import hunt.concurrency.ScheduledThreadPoolExecutor;
 import hunt.concurrency.Delayed;
 import hunt.util.Common;
 import core.time;
@@ -490,11 +489,12 @@ class ProtonTransport : BaseHandler {
     ScheduledFuture!(void) pingFuture = executor.scheduleWithFixedDelay(new class Runnable {
       void run() {
         bool checkScheduled = false;
-
+        logInfo("TIMEer .............................");
         if (connection.getLocalState() == EndpointState.ACTIVE) {
           // Using nano time since it is not related to the wall clock, which may change
           long now = LocalDateTime.now().toEpochMilli();
           long deadline = transport.tick(now);
+
           flush();
 
 
