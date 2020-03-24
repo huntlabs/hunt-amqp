@@ -88,12 +88,10 @@ class ProtonSenderImpl : ProtonLinkImpl!ProtonSender , ProtonSender {
     ProtonWritableBufferImpl buffer = new ProtonWritableBufferImpl();
     MessageImpl msg = cast(MessageImpl) message;
     msg.encode(buffer);
-    version(HUNT_DEBUG) logInfof("bbbbbbbbbbbbbbbbbb %s ",buffer.getBuffer().array());
     ReadableBuffer encoded = new ProtonReadableBufferImpl(buffer.getBuffer());
 
     int  ll  = sender().sendNoCopy(encoded); // 55
     if (link.getSenderSettleMode() == SenderSettleMode.SETTLED) {
-      version(HUNT_DEBUG) logInfof("TTTTTTTTT %d", ll);
       delivery.settle();
     }
     sender().advance(); // ends the delivery.
