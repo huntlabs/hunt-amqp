@@ -488,7 +488,7 @@ class ProtonTransport : BaseHandler {
         ScheduledFuture!(void) pingFuture = executor.scheduleWithFixedDelay(new class Runnable {
             void run() {
                 bool checkScheduled = false;
-                version(HUNT_AMQP_DEBUG) logInfo("beating .............................");
+                version(HUNT_AMQP_DEBUG) logInfo("beating ...");
                 if (connection.getLocalState() == EndpointState.ACTIVE) {
                     // Using nano time since it is not related to the wall clock, which may change
                     long now = LocalDateTime.now().toEpochMilli();
