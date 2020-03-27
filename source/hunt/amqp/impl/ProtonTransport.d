@@ -188,7 +188,7 @@ class ProtonTransport : BaseHandler {
 
             Type eventType = protonEvent.getType();
             if (eventType != (Type.TRANSPORT)) {
-                version(HUNT_DEBUG)
+                version(HUNT_AMQP_DEBUG)
                 {
                     logInfo ("New Proton Event: ");
                 }
@@ -199,14 +199,14 @@ class ProtonTransport : BaseHandler {
             case CONNECTION_REMOTE_OPEN: {
                 conn.fireRemoteOpen();
                 initiateIdleTimeoutChecks();
-                version(HUNT_DEBUG)
+                version(HUNT_AMQP_DEBUG)
                 {
-                    logInfo("CONNECTION_REMOTE_OPEN ----------------------------------------");
+                    logInfo("CONNECTION_REMOTE_OPEN----");
                 }
                 break;
             }
             case CONNECTION_REMOTE_CLOSE: {
-                version(HUNT_DEBUG)
+                version(HUNT_AMQP_DEBUG)
                 {
                     logInfo("CONNECTION_REMOTE_CLOSE -----------------------------------");
                 }
@@ -219,26 +219,26 @@ class ProtonTransport : BaseHandler {
                     conn.fireRemoteSessionOpen(protonEvent.getSession());
                 } else {
                     session.fireRemoteOpen();
-                    version(HUNT_DEBUG)
+                    version(HUNT_AMQP_DEBUG)
                     {
-                        logInfo("SESSION_REMOTE_OPEN ?????????????????????????????????????????");
+                        logInfo("SESSION_REMOTE_OPEN");
                     }
                 }
                 break;
             }
             case SESSION_REMOTE_CLOSE: {
-                version(HUNT_DEBUG)
+                version(HUNT_AMQP_DEBUG)
                 {
-                    logInfo("SESSION_REMOTE_CLOSE ?????????????????????????????????????????");
+                    logInfo("SESSION_REMOTE_CLOSE");
                 }
                 ProtonSessionImpl session = cast(ProtonSessionImpl) protonEvent.getSession().getContext();
                 session.fireRemoteClose();
                 break;
             }
             case LINK_REMOTE_OPEN: {
-                version(HUNT_DEBUG)
+                version(HUNT_AMQP_DEBUG)
                 {
-                    logInfo("LINK_REMOTE_OPEN ?????????????????????????????????????????");
+                    logInfo("LINK_REMOTE_OPEN");
                 }
                 ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink().getContext();
                 if(link !is null)
@@ -263,9 +263,9 @@ class ProtonTransport : BaseHandler {
                 break;
             }
             case LINK_REMOTE_DETACH: {
-                version(HUNT_DEBUG)
+                version(HUNT_AMQP_DEBUG)
                 {
-                    logInfo("LINK_REMOTE_DETACH ?????????????????????????????????????????");
+                    logInfo("LINK_REMOTE_DETACH");
                 }
                 ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink().getContext();
                 if (link !is null)
@@ -283,9 +283,9 @@ class ProtonTransport : BaseHandler {
 
             }
             case LINK_REMOTE_CLOSE: {
-                version(HUNT_DEBUG)
+                version(HUNT_AMQP_DEBUG)
                 {
-                    logInfo("LINK_REMOTE_CLOSE ?????????????????????????????????????????");
+                    logInfo("LINK_REMOTE_CLOSE");
                 }
                 ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink().getContext();
                 if (link !is null)
@@ -302,9 +302,9 @@ class ProtonTransport : BaseHandler {
              // link.fireRemoteClose();
             }
             case LINK_FLOW: {
-                version(HUNT_DEBUG)
+                version(HUNT_AMQP_DEBUG)
                 {
-                    logInfo("LINK_FLOW ?????????????????????????????????????????");
+                    logInfo("LINK_FLOW");
                 }
                 ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink().getContext();
                 if (link !is null)
@@ -322,9 +322,9 @@ class ProtonTransport : BaseHandler {
                 //link.handleLinkFlow();
             }
             case DELIVERY: {
-                version(HUNT_DEBUG)
+                version(HUNT_AMQP_DEBUG)
                 {
-                    logInfo("DELIVERY ?????????????????????????????????????????");
+                    logInfo("DELIVERY");
                 }
                 ProtonDeliveryImpl delivery = cast(ProtonDeliveryImpl) protonEvent.getDelivery().getContext();
                 if (delivery !is null) {
@@ -336,107 +336,107 @@ class ProtonTransport : BaseHandler {
                 break;
             }
             case TRANSPORT_ERROR: {
-                version(HUNT_DEBUG)
+                version(HUNT_AMQP_DEBUG)
                 {
-                    logInfo("TRANSPORT_ERROR ?????????????????????????????????????????");
+                    logInfo("TRANSPORT_ERROR");
                 }
                 failed = true;
                 break;
             }
 
             case CONNECTION_INIT:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("CONNECTION_INIT ?????????????????????????????????????????");
+                logInfo("CONNECTION_INIT");
             }
             break;
             case CONNECTION_BOUND:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("CONNECTION_BOUND ?????????????????????????????????????????");
+                logInfo("CONNECTION_BOUND");
             }
             break;
             case CONNECTION_UNBOUND:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("CONNECTION_UNBOUND ?????????????????????????????????????????");
+                logInfo("CONNECTION_UNBOUND");
             }
             break;
             case CONNECTION_LOCAL_OPEN:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("CONNECTION_LOCAL_OPEN ?????????????????????????????????????????");
+                logInfo("CONNECTION_LOCAL_OPEN");
             }
             break;
             case CONNECTION_LOCAL_CLOSE:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("CONNECTION_LOCAL_CLOSE ?????????????????????????????????????????");
+                logInfo("CONNECTION_LOCAL_CLOSE");
             }
             break;
             case CONNECTION_FINAL:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("CONNECTION_FINAL ?????????????????????????????????????????");
+                logInfo("CONNECTION_FINAL");
             }
             break;
             case SESSION_INIT:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("SESSION_INIT ?????????????????????????????????????????");
+                logInfo("SESSION_INIT");
             }
             break;
             case SESSION_LOCAL_OPEN:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("SESSION_LOCAL_OPEN ?????????????????????????????????????????");
+                logInfo("SESSION_LOCAL_OPEN");
             }
             break;
             case SESSION_LOCAL_CLOSE:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("SESSION_LOCAL_CLOSE ?????????????????????????????????????????");
+                logInfo("SESSION_LOCAL_CLOSE");
             }
             break;
             case SESSION_FINAL:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("SESSION_FINAL ?????????????????????????????????????????");
+                logInfo("SESSION_FINAL");
             }
             break;
 
             case LINK_INIT:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("LINK_INIT ?????????????????????????????????????????");
+                logInfo("LINK_INIT");
             }
             break;
             case LINK_LOCAL_OPEN:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("LINK_LOCAL_OPEN ?????????????????????????????????????????");
+                logInfo("LINK_LOCAL_OPEN");
             }
             break;
             case LINK_LOCAL_DETACH:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("LINK_LOCAL_DETACH ?????????????????????????????????????????");
+                logInfo("LINK_LOCAL_DETACH");
             }
             break;
             case LINK_LOCAL_CLOSE:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("LINK_LOCAL_CLOSE ?????????????????????????????????????????");
+                logInfo("LINK_LOCAL_CLOSE");
             }
             break;
             case LINK_FINAL:
-            version(HUNT_DEBUG)
+            version(HUNT_AMQP_DEBUG)
             {
-                logInfo("LINK_FINAL ?????????????????????????????????????????");
+                logInfo("LINK_FINAL");
             }
             break;
             default:
-            version(HUNT_DEBUG) logInfo("default ?????????????????????????????????????????");
+            version(HUNT_AMQP_DEBUG) logInfo("default");
                 break;
             }
 
@@ -446,9 +446,9 @@ class ProtonTransport : BaseHandler {
         if (!failed) {
             processSaslAuthentication();
         }
-        version(HUNT_DEBUG)
+        version(HUNT_AMQP_DEBUG)
         {
-            logInfo("fulsh begin: ------------------------------------------------------");
+            logInfo("fulsh begin:");
         }
         flush();
 
@@ -488,7 +488,7 @@ class ProtonTransport : BaseHandler {
         ScheduledFuture!(void) pingFuture = executor.scheduleWithFixedDelay(new class Runnable {
             void run() {
                 bool checkScheduled = false;
-                logInfo("TIMEer .............................");
+                version(HUNT_AMQP_DEBUG) logInfo("beating .............................");
                 if (connection.getLocalState() == EndpointState.ACTIVE) {
                     // Using nano time since it is not related to the wall clock, which may change
                     long now = LocalDateTime.now().toEpochMilli();
@@ -572,7 +572,7 @@ class ProtonTransport : BaseHandler {
                 int amount = min(transportBuffer.remaining(), data.readableBytes());
                 transportBuffer.limit(transportBuffer.position() + amount);
              // byte[] tmb = new byte[transportBuffer.position() + amount];
-                version(HUNT_DEBUG) {
+                version(HUNT_AMQP_DEBUG) {
                     logInfof("recv : %s --%d" ,data.getReadableBytes,data.getReadableBytes.length);
                 }
                 data.readBytes(transportBuffer);
@@ -606,7 +606,7 @@ class ProtonTransport : BaseHandler {
                     //ByteBuf bb = internal.channelHandlerContext().alloc().directBuffer(outputBuffer.remaining());
                     // bb.writeBytes(outputBuffer);
                     //logError("send : %s --- %d" , outputBuffer.array(),outputBuffer.array().length);
-                    version(HUNT_DEBUG) {
+                    version(HUNT_AMQP_DEBUG) {
                         logInfof("send : %s --- %d" , outputBuffer.getRemaining(),outputBuffer.getRemaining.length);
                     }
                     socket.write(outputBuffer);
