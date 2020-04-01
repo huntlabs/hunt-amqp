@@ -158,7 +158,7 @@ abstract class ProtonLinkImpl(T) : ProtonLink!T {
 
   public T open() {
     link.open();
-    logInfo("link open flush --------------------------------------------------");
+    version(HUNT_AMQP_DEBUG) logInfo("link open flush");
     getSession().getConnectionImpl().flush();
     return self();
   }

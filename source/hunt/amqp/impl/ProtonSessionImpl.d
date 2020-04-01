@@ -82,89 +82,89 @@ class ProtonSessionImpl : ProtonSession {
   }
 
   
-  public ProtonConnection getConnection() {
+  ProtonConnection getConnection() {
     return getConnectionImpl();
   }
 
-  public ProtonConnectionImpl getConnectionImpl() {
+  ProtonConnectionImpl getConnectionImpl() {
     return cast(ProtonConnectionImpl) (this.session.getConnection().getContext());
   }
 
-  public long getOutgoingWindow() {
+  long getOutgoingWindow() {
     return session.getOutgoingWindow();
   }
 
   
-  public ProtonSession setIncomingCapacity(int bytes) {
+  ProtonSession setIncomingCapacity(int bytes) {
     session.setIncomingCapacity(bytes);
     return this;
   }
 
-  public int getOutgoingBytes() {
+  int getOutgoingBytes() {
     return session.getOutgoingBytes();
   }
 
-  public EndpointState getRemoteState() {
+  EndpointState getRemoteState() {
     return session.getRemoteState();
   }
 
-  public int getIncomingBytes() {
+  int getIncomingBytes() {
     return session.getIncomingBytes();
   }
 
   
-  public ErrorCondition getRemoteCondition() {
+  ErrorCondition getRemoteCondition() {
     return session.getRemoteCondition();
   }
 
   
-  public int getIncomingCapacity() {
+  int getIncomingCapacity() {
     return session.getIncomingCapacity();
   }
 
-  public EndpointState getLocalState() {
+  EndpointState getLocalState() {
     return session.getLocalState();
   }
 
   
-  public ProtonSession setCondition(ErrorCondition condition) {
+  ProtonSession setCondition(ErrorCondition condition) {
     session.setCondition(condition);
     return this;
   }
 
   
-  public ErrorCondition getCondition() {
+  ErrorCondition getCondition() {
     return session.getCondition();
   }
 
-  public void setOutgoingWindow(long outgoingWindowSize) {
+  void setOutgoingWindow(long outgoingWindowSize) {
     session.setOutgoingWindow(outgoingWindowSize);
   }
 
   
-  public ProtonSessionImpl open() {
+  ProtonSessionImpl open() {
     session.open();
-    logInfo("session open -----------------------------------------------------------------------");
+    version(HUNT_AMQP_DEBUG) logInfo("session open");
     getConnectionImpl().flush();
     return this;
   }
 
   
-  public ProtonSessionImpl close() {
-    logInfo("session close -----------------------------------------------------------------------");
+  ProtonSessionImpl close() {
+    version(HUNT_AMQP_DEBUG) logInfo("session close");
     session.close();
     getConnectionImpl().flush();
     return this;
   }
 
   
-  public ProtonSessionImpl openHandler(Handler!ProtonSession openHandler) {
+  ProtonSessionImpl openHandler(Handler!ProtonSession openHandler) {
     this._openHandler = openHandler;
     return this;
   }
 
 
-  public ProtonSessionImpl closeHandler(Handler!ProtonSession closeHandler) {
+  ProtonSessionImpl closeHandler(Handler!ProtonSession closeHandler) {
     this._closeHandler = closeHandler;
     return this;
   }
@@ -179,12 +179,12 @@ class ProtonSessionImpl : ProtonSession {
   }
 
   
-  public ProtonReceiver createReceiver(string address) {
+  ProtonReceiver createReceiver(string address) {
     return createReceiver(address, new ProtonLinkOptions());
   }
 
   
-  public ProtonReceiver createReceiver(string address, ProtonLinkOptions receiverOptions) {
+  ProtonReceiver createReceiver(string address, ProtonLinkOptions receiverOptions) {
     Receiver receiver = session.receiver(getOrCreateLinkName(receiverOptions));
 
     Symbol[] outcomes = [ Accepted.DESCRIPTOR_SYMBOL, Rejected.DESCRIPTOR_SYMBOL,
@@ -222,12 +222,12 @@ class ProtonSessionImpl : ProtonSession {
   }
 
   
-  public ProtonSender createSender(string address) {
+  ProtonSender createSender(string address) {
     return createSender(address, new ProtonLinkOptions());
   }
 
   
-  public ProtonSender createSender(string address, ProtonLinkOptions senderOptions) {
+  ProtonSender createSender(string address, ProtonLinkOptions senderOptions) {
     Sender sender = session.sender(getOrCreateLinkName(senderOptions));
 
     Symbol[] outcomes = [ Accepted.DESCRIPTOR_SYMBOL, Rejected.DESCRIPTOR_SYMBOL,
@@ -267,19 +267,19 @@ class ProtonSessionImpl : ProtonSession {
   }
 
   
-  public Record attachments() {
+  Record attachments() {
     return session.attachments();
   }
 
   
-  public void free() {
+  void free() {
     session.free();
     getConnectionImpl().flush();
   }
 
   /////////////////////////////////////////////////////////////////////////////
   //
-  // Implementation details hidden from public api.
+  // Implementation details hidden from api.
   //
   /////////////////////////////////////////////////////////////////////////////
   void fireRemoteOpen() {
