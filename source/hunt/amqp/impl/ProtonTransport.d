@@ -74,9 +74,7 @@ import hunt.time.LocalDateTime;
 
 alias NetSocket = hunt.net.Connection;
 alias ConnCallBack = void delegate(NetSocket.Connection connection);
-alias MsgCallBack = void delegate(NetSocket.Connection connection ,ByteBuffer message);
-
-
+alias MsgCallBack = void delegate(NetSocket.Connection connection, ByteBuffer message);
 
 /**
  *
@@ -84,8 +82,10 @@ alias MsgCallBack = void delegate(NetSocket.Connection connection ,ByteBuffer me
 struct CommonUtil {
 
     static ScheduledThreadPoolExecutor scheduler() {
-        return initOnce!_scheduler(cast(ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(5));
+        return initOnce!_scheduler(
+                cast(ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(5));
     }
+
     private __gshared ScheduledThreadPoolExecutor _scheduler;
 
     static void stopScheduler() {
@@ -95,44 +95,50 @@ struct CommonUtil {
     }
 }
 
-
+/**
+ * 
+ */
 class ProtonTransport : BaseHandler {
-    private static  int DEFAULT_MAX_FRAME_SIZE = 32 * 1024; // 32kb
+    private static int DEFAULT_MAX_FRAME_SIZE = 32 * 1024; // 32kb
 
-    private  hunt.proton.engine.Connection.Connection connection;
-    private  NetClient netClient;
-    private  hunt.net.Connection.Connection socket;
-    private  Transport transport; //= Proton.transport();
-    private  Collector collector;// = Proton.collector();
+    private hunt.proton.engine.Connection.Connection connection;
+    private NetClient netClient;
+    private hunt.net.Connection.Connection socket;
+    private Transport transport; //= Proton.transport();
+    private Collector collector; // = Proton.collector();
     private ProtonSaslAuthenticator authenticator;
     private ScheduledThreadPoolExecutor executor;
 
- // private volatile Long idleTimeoutCheckTimerId; // TODO: cancel when closing etc?
+    // private volatile Long idleTimeoutCheckTimerId; // TODO: cancel when closing etc?
 
     private bool failed;
 
-        this(hunt.proton.engine.Connection.Connection connection , NetClient netClient, hunt.net.Connection.Connection socket,
-                                    ProtonSaslAuthenticator authenticator, ProtonTransportOptions options) {
+    this(hunt.proton.engine.Connection.Connection connection, NetClient netClient,
+            hunt.net.Connection.Connection socket,
+            ProtonSaslAuthenticator authenticator, ProtonTransportOptions options) {
         this.transport = Proton.transport();
         this.collector = Proton.collector();
         this.connection = connection;
         this.netClient = netClient;
         this.socket = socket;
-        int maxFrameSize = options.getMaxFrameSize() == 0 ? DEFAULT_MAX_FRAME_SIZE : options.getMaxFrameSize();
+        int maxFrameSize = options.getMaxFrameSize() == 0
+            ? DEFAULT_MAX_FRAME_SIZE : options.getMaxFrameSize();
         transport.setMaxFrameSize(maxFrameSize);
         transport.setOutboundFrameSizeLimit(maxFrameSize);
         transport.setEmitFlowEventOnSend(false); // TODO: make configurable
         transport.setIdleTimeout(2 * options.getHeartbeat());
         (cast(TransportInternal) transport).setUseReadOnlyOutputBuffer(false);
         if (authenticator !is null) {
-            authenticator.init(this.socket, cast(ProtonConnection)( this.connection.getContext()), transport);
+            authenticator.init(this.socket,
+                    cast(ProtonConnection)(this.connection.getContext()), transport);
         }
         this.authenticator = authenticator;
         transport.bind(connection);
         connection.collect(collector);
         (cast(ConnectionEventBaseHandler)(socket.getHandler())).setOnClosed(&this.handleSocketEnd);
-        (cast(ConnectionEventBaseHandler)(socket.getHandler())).setOnMessage(&this.handleSocketBuffer);
-     // socket.endHandler(this::handleSocketEnd);
+        (cast(ConnectionEventBaseHandler)(socket.getHandler())).setOnMessage(
+                &this.handleSocketBuffer);
+        // socket.endHandler(this::handleSocketEnd);
         //socket.handler(this::handleSocketBuffer);
     }
 
@@ -147,11 +153,10 @@ class ProtonTransport : BaseHandler {
         (cast(ProtonConnectionImpl) this.connection.getContext()).fireDisconnect();
     }
 
-    private void handleSocketBuffer(hunt.net.Connection.Connection connection ,ByteBuffer buff) {
+    private void handleSocketBuffer(hunt.net.Connection.Connection connection, ByteBuffer buff) {
         pumpInbound(buff);
 
         Event protonEvent = null;
-
 
         const int CONNECTION_REMOTE_OPEN = Type.CONNECTION_REMOTE_OPEN.ordinal;
         const int CONNECTION_REMOTE_CLOSE = Type.CONNECTION_REMOTE_CLOSE.ordinal;
@@ -167,276 +172,178 @@ class ProtonTransport : BaseHandler {
         const int CONNECTION_BOUND = Type.CONNECTION_BOUND.ordinal;
         const int CONNECTION_UNBOUND = Type.CONNECTION_UNBOUND.ordinal;
         const int CONNECTION_LOCAL_OPEN = Type.CONNECTION_LOCAL_OPEN.ordinal;
-        const int  CONNECTION_LOCAL_CLOSE = Type.CONNECTION_LOCAL_CLOSE.ordinal;
-        const int  CONNECTION_FINAL = Type.CONNECTION_FINAL.ordinal;
+        const int CONNECTION_LOCAL_CLOSE = Type.CONNECTION_LOCAL_CLOSE.ordinal;
+        const int CONNECTION_FINAL = Type.CONNECTION_FINAL.ordinal;
 
-        const int  SESSION_INIT = Type.SESSION_INIT.ordinal;
-        const int  SESSION_LOCAL_OPEN = Type.SESSION_LOCAL_OPEN.ordinal;
-        const int  SESSION_LOCAL_CLOSE = Type.SESSION_LOCAL_CLOSE.ordinal;
-        const int  SESSION_FINAL = Type.SESSION_FINAL.ordinal;
+        const int SESSION_INIT = Type.SESSION_INIT.ordinal;
+        const int SESSION_LOCAL_OPEN = Type.SESSION_LOCAL_OPEN.ordinal;
+        const int SESSION_LOCAL_CLOSE = Type.SESSION_LOCAL_CLOSE.ordinal;
+        const int SESSION_FINAL = Type.SESSION_FINAL.ordinal;
 
-        const int  LINK_INIT = Type.LINK_INIT.ordinal; //TODO
-        const int  LINK_LOCAL_OPEN = Type.LINK_LOCAL_OPEN.ordinal;
-        const int  LINK_LOCAL_DETACH = Type.LINK_LOCAL_DETACH.ordinal;
-        const int  LINK_LOCAL_CLOSE = Type.LINK_LOCAL_CLOSE.ordinal;
-        const int  LINK_FINAL = Type.LINK_FINAL.ordinal;
-
-
+        const int LINK_INIT = Type.LINK_INIT.ordinal; //TODO
+        const int LINK_LOCAL_OPEN = Type.LINK_LOCAL_OPEN.ordinal;
+        const int LINK_LOCAL_DETACH = Type.LINK_LOCAL_DETACH.ordinal;
+        const int LINK_LOCAL_CLOSE = Type.LINK_LOCAL_CLOSE.ordinal;
+        const int LINK_FINAL = Type.LINK_FINAL.ordinal;
 
         while ((protonEvent = collector.peek()) !is null) {
-            ProtonConnectionImpl conn = cast(ProtonConnectionImpl) protonEvent.getConnection().getContext();
+            ProtonConnectionImpl conn = cast(ProtonConnectionImpl) protonEvent.getConnection()
+                .getContext();
 
             Type eventType = protonEvent.getType();
-            if (eventType != (Type.TRANSPORT)) {
-                version(HUNT_AMQP_DEBUG)
-                {
-                    logInfo ("New Proton Event: ");
-                }
+            version (HUNT_AMQP_DEBUG) {
+                warningf("eventType: %s", eventType.toString());
             }
+
+            if (eventType != (Type.TRANSPORT)) {
+                // version (HUNT_AMQP_DEBUG) {
+                //     tracef("New Proton Event: %s", eventType.toString());
+                // }
+            }
+
             int type = eventType.ordinal;
-        
             switch (type) {
             case CONNECTION_REMOTE_OPEN: {
-                conn.fireRemoteOpen();
-                initiateIdleTimeoutChecks();
-                version(HUNT_AMQP_DEBUG)
-                {
-                    logInfo("CONNECTION_REMOTE_OPEN----");
+                    conn.fireRemoteOpen();
+                    initiateIdleTimeoutChecks();
+                    break;
                 }
-                break;
-            }
+
             case CONNECTION_REMOTE_CLOSE: {
-                version(HUNT_AMQP_DEBUG)
-                {
-                    logInfo("CONNECTION_REMOTE_CLOSE -----------------------------------");
+                    conn.fireRemoteClose();
+                    break;
                 }
-                conn.fireRemoteClose();
-                break;
-            }
+
             case SESSION_REMOTE_OPEN: {
-                ProtonSessionImpl session = cast(ProtonSessionImpl) protonEvent.getSession().getContext();
-                if (session is null) {
-                    conn.fireRemoteSessionOpen(protonEvent.getSession());
-                } else {
-                    session.fireRemoteOpen();
-                    version(HUNT_AMQP_DEBUG)
-                    {
-                        logInfo("SESSION_REMOTE_OPEN");
+                    ProtonSessionImpl session = cast(ProtonSessionImpl) protonEvent.getSession()
+                        .getContext();
+                    if (session is null) {
+                        conn.fireRemoteSessionOpen(protonEvent.getSession());
+                    } else {
+                        session.fireRemoteOpen();
+                    }
+                    break;
+                }
+            case SESSION_REMOTE_CLOSE: {
+                    ProtonSessionImpl session = cast(ProtonSessionImpl) protonEvent.getSession()
+                        .getContext();
+                    session.fireRemoteClose();
+                    break;
+                }
+            case LINK_REMOTE_OPEN: {
+                    ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink()
+                        .getContext();
+                    if (link !is null) {
+                        link.fireRemoteOpen();
+                        break;
+                    }
+
+                    ProtonLinkImpl!ProtonSender lins = cast(ProtonLinkImpl!ProtonSender) protonEvent.getLink()
+                        .getContext();
+                    if (lins !is null) {
+                        lins.fireRemoteOpen();
+                        break;
+                    }
+
+                    conn.fireRemoteLinkOpen(protonEvent.getLink());
+                    //if (link is null) {
+                    //  conn.fireRemoteLinkOpen(protonEvent.getLink());
+                    //} else {
+                    //  link.fireRemoteOpen();
+                    //}
+                    break;
+                }
+            case LINK_REMOTE_DETACH: {
+                    ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink()
+                        .getContext();
+                    if (link !is null) {
+                        link.fireRemoteDetach();
+                        break;
+                    } else {
+                        ProtonLinkImpl!ProtonSender lk = cast(ProtonLinkImpl!ProtonSender) protonEvent.getLink()
+                            .getContext();
+                        lk.fireRemoteDetach();
+                        break;
                     }
                 }
-                break;
-            }
-            case SESSION_REMOTE_CLOSE: {
-                version(HUNT_AMQP_DEBUG)
-                {
-                    logInfo("SESSION_REMOTE_CLOSE");
-                }
-                ProtonSessionImpl session = cast(ProtonSessionImpl) protonEvent.getSession().getContext();
-                session.fireRemoteClose();
-                break;
-            }
-            case LINK_REMOTE_OPEN: {
-                version(HUNT_AMQP_DEBUG)
-                {
-                    logInfo("LINK_REMOTE_OPEN");
-                }
-                ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink().getContext();
-                if(link !is null)
-                {
-                    link.fireRemoteOpen();
-                    break;
-                }
 
-                ProtonLinkImpl!ProtonSender lins = cast(ProtonLinkImpl!ProtonSender) protonEvent.getLink().getContext();
-                if(lins !is null)
-                {
-                    lins.fireRemoteOpen();
-                    break;
-                }
-
-                conn.fireRemoteLinkOpen(protonEvent.getLink());
-                //if (link is null) {
-                //  conn.fireRemoteLinkOpen(protonEvent.getLink());
-                //} else {
-                //  link.fireRemoteOpen();
-                //}
-                break;
-            }
-            case LINK_REMOTE_DETACH: {
-                version(HUNT_AMQP_DEBUG)
-                {
-                    logInfo("LINK_REMOTE_DETACH");
-                }
-                ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink().getContext();
-                if (link !is null)
-                {
-                    link.fireRemoteDetach();
-                    break;
-                }
-                else
-                {
-                    ProtonLinkImpl!ProtonSender lk = cast(ProtonLinkImpl!ProtonSender) protonEvent.getLink().getContext();
-                    lk.fireRemoteDetach();
-                    break;
-                }
-                //implementationMissing(false);
-
-            }
             case LINK_REMOTE_CLOSE: {
-                version(HUNT_AMQP_DEBUG)
-                {
-                    logInfo("LINK_REMOTE_CLOSE");
+                    ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink()
+                        .getContext();
+                    if (link !is null) {
+                        link.fireRemoteClose();
+                        break;
+                    } else {
+                        ProtonLinkImpl!ProtonSender lk = cast(ProtonLinkImpl!ProtonSender) protonEvent.getLink()
+                            .getContext();
+                        lk.fireRemoteClose();
+                        break;
+                    }
+                    // link.fireRemoteClose();
                 }
-                ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink().getContext();
-                if (link !is null)
-                {
-                    link.fireRemoteClose();
-                    break;
-                }
-                else
-                {
-                    ProtonLinkImpl!ProtonSender lk = cast(ProtonLinkImpl!ProtonSender) protonEvent.getLink().getContext();
-                    lk.fireRemoteClose();
-                    break;
-                }
-             // link.fireRemoteClose();
-            }
             case LINK_FLOW: {
-                version(HUNT_AMQP_DEBUG)
-                {
-                    logInfo("LINK_FLOW");
+                    ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink()
+                        .getContext();
+                    if (link !is null) {
+                        link.handleLinkFlow();
+                        break;
+                    } else {
+                        ProtonLinkImpl!ProtonSender lk = cast(ProtonLinkImpl!ProtonSender) protonEvent.getLink()
+                            .getContext();
+                        lk.handleLinkFlow();
+                        break;
+                    }
+                    // ProtonLinkImpl<?> link = (ProtonLinkImpl<?>) protonEvent.getLink().getContext();
+                    //link.handleLinkFlow();
                 }
-                ProtonLinkImpl!ProtonReceiver link = cast(ProtonLinkImpl!ProtonReceiver) protonEvent.getLink().getContext();
-                if (link !is null)
-                {
-                    link.handleLinkFlow();
-                    break;
-                }
-                else
-                {
-                    ProtonLinkImpl!ProtonSender lk = cast(ProtonLinkImpl!ProtonSender) protonEvent.getLink().getContext();
-                    lk.handleLinkFlow();
-                    break;
-                }
-             // ProtonLinkImpl<?> link = (ProtonLinkImpl<?>) protonEvent.getLink().getContext();
-                //link.handleLinkFlow();
-            }
             case DELIVERY: {
-                version(HUNT_AMQP_DEBUG)
-                {
-                    logInfo("DELIVERY");
+                    ProtonDeliveryImpl delivery = cast(ProtonDeliveryImpl) protonEvent.getDelivery()
+                        .getContext();
+                    if (delivery !is null) {
+                        delivery.fireUpdate();
+                    } else {
+                        ProtonReceiverImpl receiver = cast(ProtonReceiverImpl) protonEvent.getLink()
+                            .getContext();
+                        receiver.onDelivery();
+                    }
+                    break;
                 }
-                ProtonDeliveryImpl delivery = cast(ProtonDeliveryImpl) protonEvent.getDelivery().getContext();
-                if (delivery !is null) {
-                    delivery.fireUpdate();
-                } else {
-                    ProtonReceiverImpl receiver = cast(ProtonReceiverImpl) protonEvent.getLink().getContext();
-                    receiver.onDelivery();
-                }
-                break;
-            }
             case TRANSPORT_ERROR: {
-                version(HUNT_AMQP_DEBUG)
-                {
-                    logInfo("TRANSPORT_ERROR");
+                    failed = true;
+                    break;
                 }
-                failed = true;
-                break;
-            }
 
             case CONNECTION_INIT:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("CONNECTION_INIT");
-            }
-            break;
+                break;
             case CONNECTION_BOUND:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("CONNECTION_BOUND");
-            }
-            break;
+                break;
             case CONNECTION_UNBOUND:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("CONNECTION_UNBOUND");
-            }
-            break;
+                break;
             case CONNECTION_LOCAL_OPEN:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("CONNECTION_LOCAL_OPEN");
-            }
-            break;
+                break;
             case CONNECTION_LOCAL_CLOSE:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("CONNECTION_LOCAL_CLOSE");
-            }
-            break;
+                break;
             case CONNECTION_FINAL:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("CONNECTION_FINAL");
-            }
-            break;
+                break;
             case SESSION_INIT:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("SESSION_INIT");
-            }
-            break;
+                break;
             case SESSION_LOCAL_OPEN:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("SESSION_LOCAL_OPEN");
-            }
-            break;
+                break;
             case SESSION_LOCAL_CLOSE:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("SESSION_LOCAL_CLOSE");
-            }
-            break;
+                break;
             case SESSION_FINAL:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("SESSION_FINAL");
-            }
-            break;
-
+                break;
             case LINK_INIT:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("LINK_INIT");
-            }
-            break;
+                break;
             case LINK_LOCAL_OPEN:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("LINK_LOCAL_OPEN");
-            }
-            break;
+                break;
             case LINK_LOCAL_DETACH:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("LINK_LOCAL_DETACH");
-            }
-            break;
+                break;
             case LINK_LOCAL_CLOSE:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("LINK_LOCAL_CLOSE");
-            }
-            break;
+                break;
             case LINK_FINAL:
-            version(HUNT_AMQP_DEBUG)
-            {
-                logInfo("LINK_FINAL");
-            }
-            break;
+                break;
             default:
-            version(HUNT_AMQP_DEBUG) logInfo("default");
                 break;
             }
 
@@ -446,10 +353,7 @@ class ProtonTransport : BaseHandler {
         if (!failed) {
             processSaslAuthentication();
         }
-        version(HUNT_AMQP_DEBUG)
-        {
-            logInfo("fulsh begin:");
-        }
+
         flush();
 
         if (failed) {
@@ -462,7 +366,8 @@ class ProtonTransport : BaseHandler {
             return;
         }
 
-     // socket.pause();
+        // socket.pause();
+        // dfmt off
         authenticator.process(new class Handler!bool {
             void handle(bool var1)
             {
@@ -472,19 +377,22 @@ class ProtonTransport : BaseHandler {
                     }
             }
         });
+        // dfmt on
 
-    //  authenticator.process(complete -> {
-    //    if(complete) {
-    //      authenticator = null;
-    //    }
-    //
-    //    socket.resume();
-    //  });
+        //  authenticator.process(complete -> {
+        //    if(complete) {
+        //      authenticator = null;
+        //    }
+        //
+        //    socket.resume();
+        //  });
     }
 
     private void initiateIdleTimeoutChecks() {
         executor = CommonUtil.scheduler();
         executor.setRemoveOnCancelPolicy(true);
+
+        // dfmt off
         ScheduledFuture!(void) pingFuture = executor.scheduleWithFixedDelay(new class Runnable {
             void run() {
                 bool checkScheduled = false;
@@ -513,22 +421,24 @@ class ProtonTransport : BaseHandler {
                         //}
                     }
                 } else {
-                    logInfo("IdleTimeoutCheck skipping check, connection is not active.");
+                    version(HUNT_DEBUG) logInfo("IdleTimeoutCheck skipping check, connection is not active.");
                 }
             }
         },
         msecs(20000),
         msecs(20000));
 
+        // dfmt on
+
         //implementationMissing(false);
         // Using nano time since it is not related to the wall clock, which may change
-     // long now = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
-     // long now = DateTime.currentTimeNsecs();
-     // long deadline = transport.tick(now);
-     // if (deadline != 0)
-     // {
-     //   logError("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-     // }
+        // long now = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
+        // long now = DateTime.currentTimeNsecs();
+        // long deadline = transport.tick(now);
+        // if (deadline != 0)
+        // {
+        //   logError("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        // }
         //if (deadline != 0) {
         //  // timer treats 0 as error, ensure value is at least 1 as there was a deadline
         //  long delay = Math.max(deadline - now, 1);
@@ -545,9 +455,6 @@ class ProtonTransport : BaseHandler {
             return;
         }
 
-
-
-
         //ByteBuf data = buffer.getByteBuf();
         //do {
         //  ByteBuffer transportBuffer = transport.tail();
@@ -561,32 +468,34 @@ class ProtonTransport : BaseHandler {
 
         // Lets push bytes from vert.x to proton engine.
         try {
-         // ByteBuf data = buffer.getByteBuf();
-         // WrappedByteBuf data = new WrappedByteBuf;
-         // data.readBytes(buffer.getRemaining());
+            // ByteBuf data = buffer.getByteBuf();
+            // WrappedByteBuf data = new WrappedByteBuf;
+            // data.readBytes(buffer.getRemaining());
 
             ByteBuf data = Unpooled.wrappedBuffer(buffer);
             do {
                 ByteBuffer transportBuffer = transport.tail();
-             // writeln("%s",transportBuffer.array);
+                // writeln("%s",transportBuffer.array);
                 int amount = min(transportBuffer.remaining(), data.readableBytes());
                 transportBuffer.limit(transportBuffer.position() + amount);
-             // byte[] tmb = new byte[transportBuffer.position() + amount];
-                version(HUNT_AMQP_DEBUG) {
-                    logInfof("recv : %s --%d" ,data.getReadableBytes,data.getReadableBytes.length);
+                // byte[] tmb = new byte[transportBuffer.position() + amount];
+                version (HUNT_AMQP_DEBUG) {
+                    tracef("recv(%d bytes): [%(%02X %)]",
+                            data.getReadableBytes.length, data.getReadableBytes);
                 }
                 data.readBytes(transportBuffer);
 
-             // transportBuffer = BufferUtils.toBuffer(tmb);
-             // logError("recevbef : %s",transportBuffer.toString());
-             // transportBuffer.put(tmb);
+                // transportBuffer = BufferUtils.toBuffer(tmb);
+                // logError("recevbef : %s",transportBuffer.toString());
+                // transportBuffer.put(tmb);
 
-             // logError("recevafter : %s",transportBuffer.toString());
+                // logError("recevafter : %s",transportBuffer.toString());
 
                 //transportBuffer.flip();
-             // logError("recevafter flip : %s",transportBuffer.getRemaining());
+                // logError("recevafter flip : %s",transportBuffer.getRemaining());
                 transport.process();
-            } while (data.isReadable());
+            }
+            while (data.isReadable());
         } catch (Exception te) {
             failed = true;
             logError("Exception while processing transport input");
@@ -594,10 +503,8 @@ class ProtonTransport : BaseHandler {
         }
     }
 
-
     void flush() {
-        synchronized(this)
-        {
+        synchronized (this) {
             bool done = false;
             while (!done) {
                 ByteBuffer outputBuffer = transport.getOutputBuffer();
@@ -606,8 +513,9 @@ class ProtonTransport : BaseHandler {
                     //ByteBuf bb = internal.channelHandlerContext().alloc().directBuffer(outputBuffer.remaining());
                     // bb.writeBytes(outputBuffer);
                     //logError("send : %s --- %d" , outputBuffer.array(),outputBuffer.array().length);
-                    version(HUNT_AMQP_DEBUG) {
-                        logInfof("send : %s --- %d" , outputBuffer.getRemaining(),outputBuffer.getRemaining.length);
+                    version (HUNT_AMQP_DEBUG) {
+                        logInfof("send(%d bytes): [%(%02X %)]",
+                                outputBuffer.getRemaining.length, outputBuffer.getRemaining());
                     }
                     socket.write(outputBuffer);
                     // internal.writeMessage(bb);

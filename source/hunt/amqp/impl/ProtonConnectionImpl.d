@@ -43,15 +43,12 @@ import hunt.amqp.impl.ProtonSenderImpl;
 import hunt.amqp.impl.ProtonReceiverImpl;
 
 import hunt.collection.ArrayList;
-//import java.util.Arrays;
-//import java.util.Iterator;
 import hunt.collection.LinkedHashMap;
 import hunt.collection.List;
 import hunt.collection.Map;
 import hunt.net.NetClient;
-//import java.util.UUID;
 
-//import hunt.amqp.ProtonHelper.future;
+
 import hunt.amqp.impl.ProtonTransport;
 import hunt.amqp.Handler;
 import std.concurrency : initOnce;
@@ -63,62 +60,62 @@ import hunt.net.Connection;
 import hunt.amqp.impl.ProtonSaslClientAuthenticatorImpl;
 import hunt.Object;
 import hunt.String;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="http://hiramchirino.com">Hiram Chirino</a>
  */
 class ProtonConnectionImpl : ProtonConnection {
 
- // static  Symbol ANONYMOUS_RELAY = Symbol.valueOf("ANONYMOUS-RELAY");
+    // static  Symbol ANONYMOUS_RELAY = Symbol.valueOf("ANONYMOUS-RELAY");
 
-    static Symbol  ANONYMOUS_RELAY() {
-        __gshared Symbol  inst;
+    static Symbol ANONYMOUS_RELAY() {
+        __gshared Symbol inst;
         return initOnce!inst(Symbol.valueOf("ANONYMOUS-RELAY"));
     }
 
-
-    private  hunt.proton.engine.Connection.Connection connection ;//= Proton.connection();
-//  private  ContextInternal connCtx;
+    private hunt.proton.engine.Connection.Connection connection; //= Proton.connection();
+    //  private  ContextInternal connCtx;
     private ProtonTransport transport;
-//  private List<Handler<Void>> endHandlers = new ArrayList<>();
+    //  private List<Handler<Void>> endHandlers = new ArrayList<>();
 
-    private Handler!ProtonConnection _openHandler ; //= (result) -> {
+    private Handler!ProtonConnection _openHandler; //= (result) -> {
     //  LOG.trace("Connection open completed");
     //};
-    private Handler!ProtonConnection _closeHandler ;//= (result) -> {
+    private Handler!ProtonConnection _closeHandler; //= (result) -> {
     //  if (result.succeeded()) {
     //    LOG.trace("Connection closed");
     //  } else {
     //    LOG.warn("Connection closed with error", result.cause());
     //  }
     //};
-    private Handler!ProtonConnection _disconnectHandler;// = (connection) -> {
+    private Handler!ProtonConnection _disconnectHandler; // = (connection) -> {
     //  LOG.trace("Connection disconnected");
     //};
     //
     //private Handler<ProtonSession> sessionOpenHandler = (session) -> {
     //  session.setCondition(new ErrorCondition(Symbol.getSymbol("Not Supported"), ""));
     //};
-    private Handler!ProtonSender _senderOpenHandler ;//= (sender) -> {
+    private Handler!ProtonSender _senderOpenHandler; //= (sender) -> {
     //  sender.setCondition(new ErrorCondition(Symbol.getSymbol("Not Supported"), ""));
     //};
-    private Handler!ProtonReceiver _receiverOpenHandler ;//= (receiver) -> {
+    private Handler!ProtonReceiver _receiverOpenHandler; //= (receiver) -> {
     //  receiver.setCondition(new ErrorCondition(Symbol.getSymbol("Not Supported"), ""));
     //};
     private bool anonymousRelaySupported;
     private ProtonSession defaultSession;
     private hunt.net.Connection.Connection _conn;
 
-        this(string hostname ,hunt.net.Connection.Connection conn) {
-            this.connection = Proton.connection();
-            this.connection.setContext(this);
-            string  tmp =  "vert.x-";
-            tmp ~= randomUUID().toString();
-            this.connection.setContainer(tmp);
-            this.connection.setHostname(hostname);
-            this._conn = conn;
-            Map!(Symbol, Object) props = createInitialPropertiesMap();
-            connection.setProperties(props);
+    this(string hostname, hunt.net.Connection.Connection conn) {
+        this.connection = Proton.connection();
+        this.connection.setContext(this);
+        string tmp = "vert.x-";
+        tmp ~= randomUUID().toString();
+        this.connection.setContainer(tmp);
+        this.connection.setHostname(hostname);
+        this._conn = conn;
+        Map!(Symbol, Object) props = createInitialPropertiesMap();
+        connection.setProperties(props);
     }
 
     private Map!(Symbol, Object) createInitialPropertiesMap() {
@@ -134,7 +131,7 @@ class ProtonConnectionImpl : ProtonConnection {
     //
     /////////////////////////////////////////////////////////////////////////////
 
-    ProtonConnectionImpl setProperties( Map!(Symbol, Object) properties) {
+    ProtonConnectionImpl setProperties(Map!(Symbol, Object) properties) {
         Map!(Symbol, Object) newProps = null;
         if (properties !is null) {
             newProps = createInitialPropertiesMap();
@@ -150,40 +147,33 @@ class ProtonConnectionImpl : ProtonConnection {
         return this;
     }
 
-
     ProtonConnectionImpl setHostname(string hostname) {
         connection.setHostname(hostname);
         return this;
     }
-
 
     ProtonConnectionImpl setDesiredCapabilities(Symbol[] capabilities) {
         connection.setDesiredCapabilities(capabilities);
         return this;
     }
 
-
     ProtonConnectionImpl setContainer(string container) {
         connection.setContainer(container);
         return this;
     }
-
 
     ProtonConnectionImpl setCondition(ErrorCondition condition) {
         connection.setCondition(condition);
         return this;
     }
 
-
     ErrorCondition getCondition() {
         return connection.getCondition();
     }
 
-
     string getContainer() {
         return connection.getContainer();
     }
-
 
     string getHostname() {
         return connection.getHostname();
@@ -193,31 +183,25 @@ class ProtonConnectionImpl : ProtonConnection {
         return connection.getLocalState();
     }
 
-
     ErrorCondition getRemoteCondition() {
         return connection.getRemoteCondition();
     }
-
 
     string getRemoteContainer() {
         return connection.getRemoteContainer();
     }
 
-
     Symbol[] getRemoteDesiredCapabilities() {
         return connection.getRemoteDesiredCapabilities();
     }
-
 
     string getRemoteHostname() {
         return connection.getRemoteHostname();
     }
 
-
     Symbol[] getRemoteOfferedCapabilities() {
         return connection.getRemoteOfferedCapabilities();
     }
-
 
     Map!(Symbol, Object) getRemoteProperties() {
         return connection.getRemoteProperties();
@@ -227,11 +211,9 @@ class ProtonConnectionImpl : ProtonConnection {
         return connection.getRemoteState();
     }
 
-
     bool isAnonymousRelaySupported() {
         return anonymousRelaySupported;
     }
-
 
     Record attachments() {
         return connection.attachments();
@@ -243,21 +225,19 @@ class ProtonConnectionImpl : ProtonConnection {
     //
     /////////////////////////////////////////////////////////////////////////////
 
-
     ProtonConnection open() {
-        version(HUNT_AMQP_DEBUG) logInfo("open-------");
+        version (HUNT_AMQP_DEBUG)
+            logInfo("open-------");
         connection.open();
         flush();
         return this;
     }
-
 
     ProtonConnection close() {
         connection.close();
         flush();
         return this;
     }
-
 
     ProtonSessionImpl createSession() {
         return new ProtonSessionImpl(connection.session());
@@ -296,33 +276,29 @@ class ProtonConnectionImpl : ProtonConnection {
         return defaultSession;
     }
 
-
     ProtonSender createSender(string address) {
         return getDefaultSession().createSender((address));
     }
 
-
     ProtonSender createSender(string address, ProtonLinkOptions senderOptions) {
-            return getDefaultSession().createSender((address), senderOptions);
+        return getDefaultSession().createSender((address), senderOptions);
     }
-
 
     ProtonReceiver createReceiver(string address) {
         return getDefaultSession().createReceiver((address));
     }
 
-
     ProtonReceiver createReceiver(string address, ProtonLinkOptions receiverOptions) {
-            return getDefaultSession().createReceiver((address), receiverOptions);
+        return getDefaultSession().createReceiver((address), receiverOptions);
     }
 
     void flush() {
         if (transport !is null) {
-            version(HUNT_AMQP_DEBUG) logInfo("transport flush");
+            version (HUNT_AMQP_DEBUG)
+                logInfo("transport flush");
             transport.flush();
         }
     }
-
 
     void disconnect() {
         if (transport !is null) {
@@ -330,11 +306,9 @@ class ProtonConnectionImpl : ProtonConnection {
         }
     }
 
-
     bool isDisconnected() {
         return transport is null;
     }
-
 
     ProtonConnection openHandler(Handler!ProtonConnection openHandler) {
         //implementationMissing(false);
@@ -342,20 +316,17 @@ class ProtonConnectionImpl : ProtonConnection {
         return this;
     }
 
-
     ProtonConnection closeHandler(Handler!ProtonConnection closeHandler) {
-     // implementationMissing(false);
+        // implementationMissing(false);
         this._closeHandler = closeHandler;
         return this;
     }
 
-
     ProtonConnection disconnectHandler(Handler!ProtonConnection disconnectHandler) {
-     // implementationMissing(false);
+        // implementationMissing(false);
         this._disconnectHandler = disconnectHandler;
         return this;
     }
-
 
     ProtonConnection sessionOpenHandler(Handler!ProtonSession remoteSessionOpenHandler) {
         implementationMissing(false);
@@ -363,13 +334,11 @@ class ProtonConnectionImpl : ProtonConnection {
         return this;
     }
 
-
     ProtonConnection senderOpenHandler(Handler!ProtonSender remoteSenderOpenHandler) {
         //implementationMissing(false);
         this._senderOpenHandler = remoteSenderOpenHandler;
         return this;
     }
-
 
     ProtonConnection receiverOpenHandler(Handler!ProtonReceiver remoteReceiverOpenHandler) {
         //implementationMissing(false);
@@ -424,8 +393,10 @@ class ProtonConnectionImpl : ProtonConnection {
         //}
     }
 
-    void bindClient(NetClient client ,ProtonSaslClientAuthenticatorImpl authenticator, ProtonTransportOptions transportOptions) {
-        transport = new ProtonTransport(connection, client, _conn, authenticator, transportOptions);
+    void bindClient(NetClient client, ProtonSaslClientAuthenticatorImpl authenticator,
+            ProtonTransportOptions transportOptions) {
+        transport = new ProtonTransport(connection, client, _conn,
+                authenticator, transportOptions);
     }
 
     //void bindServer(NetSocket socket, ProtonSaslAuthenticator authenticator, ProtonTransportOptions transportOptions) {
@@ -440,7 +411,7 @@ class ProtonConnectionImpl : ProtonConnection {
     }
 
     void fireRemoteLinkOpen(Link link) {
-        if (cast(Sender)link !is null) {
+        if (cast(Sender) link !is null) {
             if (_senderOpenHandler !is null) {
                 _senderOpenHandler.handle(new ProtonSenderImpl(cast(Sender) link));
             }
@@ -453,7 +424,7 @@ class ProtonConnectionImpl : ProtonConnection {
 
     void addEndHandler(Handler!Void handler) {
         implementationMissing(false);
-     // endHandlers.add(handler);
+        // endHandlers.add(handler);
     }
 
     hunt.net.Connection.Connection getContext() {
