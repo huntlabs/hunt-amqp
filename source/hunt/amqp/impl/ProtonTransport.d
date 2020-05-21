@@ -15,19 +15,12 @@
 */
 module hunt.amqp.impl.ProtonTransport;
 
-//import io.netty.buffer.ByteBuf;
-//import io.vertx.core.Handler;
-//import io.vertx.core.Vertx;
-//import io.vertx.core.buffer.Buffer;
-//import io.vertx.core.net.impl.NetSocketInternal;
-//import io.vertx.core.impl.logging.Logger;
-//import io.vertx.core.impl.logging.LoggerFactory;
 import hunt.net.NetClient;
 import hunt.amqp.ProtonReceiver;
 import hunt.amqp.ProtonSender;
 import hunt.net.buffer.ByteBuf;
-import hunt.collection.ByteBuffer;
-import hunt.collection.Buffer;
+import hunt.io.ByteBuffer;
+// import hunt.io.Buffer;
 import hunt.amqp.ProtonConnection;
 import hunt.amqp.ProtonTransportOptions;
 import hunt.amqp.sasl.ProtonSaslAuthenticator;
@@ -40,7 +33,6 @@ import hunt.proton.engine.Event;
 import hunt.proton.engine.Transport;
 import hunt.proton.engine.impl.TransportInternal;
 import hunt.amqp.impl.ProtonClientImpl;
-import hunt.collection.ByteBuffer;
 import hunt.net.Connection;
 import hunt.net.buffer.WrappedByteBuf;
 import hunt.amqp.impl.ProtonConnectionImpl;
@@ -56,7 +48,7 @@ import hunt.amqp.Handler;
 import std.stdio;
 import hunt.time.LocalDateTime;
 import hunt.util.DateTime;
-import hunt.collection.BufferUtils;
+// import hunt.io.BufferUtils;
 import hunt.concurrency.ScheduledThreadPoolExecutor;
 import hunt.concurrency.Executors;
 import hunt.concurrency.ExecutorService;
@@ -66,6 +58,7 @@ import hunt.util.Common;
 import core.time;
 import std.concurrency : initOnce;
 import hunt.time.LocalDateTime;
+import hunt.util.Runnable;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>

@@ -21,7 +21,7 @@ import hunt.amqp.ProtonConnection;
 import hunt.amqp.ProtonTransportOptions;
 import hunt.amqp.impl.ProtonConnectionImpl;
 import hunt.amqp.Handler;
-import hunt.collection.ByteBuffer;
+import hunt.io.ByteBuffer;
 import hunt.net.NetClient;
 import hunt.net.NetUtil;
 import hunt.net;

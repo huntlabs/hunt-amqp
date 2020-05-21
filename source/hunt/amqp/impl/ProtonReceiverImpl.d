@@ -120,7 +120,7 @@ class ProtonReceiverImpl : ProtonLinkImpl!ProtonReceiver , ProtonReceiver {
   }
 
   override
-  public ProtonReceiver flow(int credits){
+  public ProtonReceiver flow(int credits) {
     flow(credits, true);
     return this;
   }

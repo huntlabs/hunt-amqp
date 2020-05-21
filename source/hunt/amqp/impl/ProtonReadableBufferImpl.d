@@ -15,7 +15,7 @@
  */
 module hunt.amqp.impl.ProtonReadableBufferImpl;
 
-import hunt.collection.ByteBuffer;
+import hunt.io.ByteBuffer;
 
 import hunt.proton.codec.ReadableBuffer;
 import hunt.proton.codec.WritableBuffer;
