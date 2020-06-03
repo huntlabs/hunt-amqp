@@ -188,10 +188,11 @@ class ProtonTransport : BaseHandler {
                 warningf("eventType: %s", eventType.toString());
             }
 
+
             if (eventType != (Type.TRANSPORT)) {
-                // version (HUNT_AMQP_DEBUG) {
-                //     tracef("New Proton Event: %s", eventType.toString());
-                // }
+                version (HUNT_AMQP_DEBUG) {
+                    warningf("New Proton Event: %s", eventType.toString());
+                }
             }
 
             int type = eventType.ordinal;

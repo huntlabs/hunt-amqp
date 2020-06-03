@@ -77,7 +77,7 @@ class ProtonConnectionImpl : ProtonConnection {
     private hunt.proton.engine.Connection.Connection connection; //= Proton.connection();
     //  private  ContextInternal connCtx;
     private ProtonTransport transport;
-    //  private List<Handler<Void>> endHandlers = new ArrayList<>();
+    private Handler!(Void)[] endHandlers;
 
     private Handler!ProtonConnection _openHandler; //= (result) -> {
     //  LOG.trace("Connection open completed");
@@ -317,13 +317,11 @@ class ProtonConnectionImpl : ProtonConnection {
     }
 
     ProtonConnection closeHandler(Handler!ProtonConnection closeHandler) {
-        // implementationMissing(false);
         this._closeHandler = closeHandler;
         return this;
     }
 
     ProtonConnection disconnectHandler(Handler!ProtonConnection disconnectHandler) {
-        // implementationMissing(false);
         this._disconnectHandler = disconnectHandler;
         return this;
     }
@@ -373,24 +371,24 @@ class ProtonConnectionImpl : ProtonConnection {
 
     void fireRemoteClose() {
         implementationMissing(false);
-        //if (closeHandler !is null) {
-        //  closeHandler.handle(future(this, getRemoteCondition()));
-        //}
+        warning("dsdsdssdsdssd");
+        // if (_closeHandler !is null) {
+        //     _closeHandler.handle(future(this, getRemoteCondition()));
+        // }
     }
 
     void fireDisconnect() {
-        implementationMissing(false);
-        //transport = null;
-        //if (disconnectHandler !is null) {
-        //  disconnectHandler.handle(this);
-        //}
-        //
-        //Iterator<Handler<Void>> iter = endHandlers.iterator();
-        //while(iter.hasNext()) {
-        //  Handler<Void> h = iter.next();
-        //  iter.remove();
-        //  h.handle(null);
-        //}
+        version(HUNT_DEBUG) info("Disconnecting...");
+        transport = null;
+        if (_disconnectHandler !is null) {
+            _disconnectHandler.handle(this);
+        }
+
+        foreach(Handler!Void handler; endHandlers) {
+            handler.handle(null);
+        }
+
+        endHandlers = null;
     }
 
     void bindClient(NetClient client, ProtonSaslClientAuthenticatorImpl authenticator,
@@ -423,8 +421,7 @@ class ProtonConnectionImpl : ProtonConnection {
     }
 
     void addEndHandler(Handler!Void handler) {
-        implementationMissing(false);
-        // endHandlers.add(handler);
+        endHandlers ~= handler;
     }
 
     hunt.net.Connection.Connection getContext() {

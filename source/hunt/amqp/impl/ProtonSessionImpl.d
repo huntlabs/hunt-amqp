@@ -67,7 +67,7 @@ class ProtonSessionImpl : ProtonSession {
     {
       void handle(ProtonSession var1)
       {
-          logInfo("Session open completed");
+          version(HUNT_DEBUG) logInfo("Session open completed");
       }
     };
 
@@ -75,7 +75,7 @@ class ProtonSessionImpl : ProtonSession {
     {
       void handle(ProtonSession var1)
       {
-        logInfo("Session closed with error");
+        error("Session closed with error");
       }
     };
 

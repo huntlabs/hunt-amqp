@@ -11,6 +11,15 @@
 
 module hunt.amqp.Handler;
 
+import hunt.net.AsyncResult;
+import hunt.Object;
+import hunt.Functions;
+
+alias AsyncResultHandler(T) = Action1!(AsyncResult!T);
+alias VoidAsyncHandler = AsyncResultHandler!Void;
+alias VoidAsyncResult = AsyncResult!Void;
+
+
 interface Handler(E) {
     void handle(E var1);
 }
