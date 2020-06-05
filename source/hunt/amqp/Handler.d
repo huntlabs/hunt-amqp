@@ -18,6 +18,7 @@ import hunt.Functions;
 alias AsyncResultHandler(T) = Action1!(AsyncResult!T);
 alias VoidAsyncHandler = AsyncResultHandler!Void;
 alias VoidAsyncResult = AsyncResult!Void;
+alias AmqpEventHandler = ActionN;
 
 
 interface Handler(E) {

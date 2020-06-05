@@ -173,7 +173,7 @@ class ProtonTransport : BaseHandler {
         const int SESSION_LOCAL_CLOSE = Type.SESSION_LOCAL_CLOSE.ordinal;
         const int SESSION_FINAL = Type.SESSION_FINAL.ordinal;
 
-        const int LINK_INIT = Type.LINK_INIT.ordinal; //TODO
+        const int LINK_INIT = Type.LINK_INIT.ordinal;
         const int LINK_LOCAL_OPEN = Type.LINK_LOCAL_OPEN.ordinal;
         const int LINK_LOCAL_DETACH = Type.LINK_LOCAL_DETACH.ordinal;
         const int LINK_LOCAL_CLOSE = Type.LINK_LOCAL_CLOSE.ordinal;
@@ -184,18 +184,15 @@ class ProtonTransport : BaseHandler {
                 .getContext();
 
             Type eventType = protonEvent.getType();
+            int type = eventType.ordinal;
+
             version (HUNT_AMQP_DEBUG) {
-                warningf("eventType: %s", eventType.toString());
-            }
-
-
-            if (eventType != (Type.TRANSPORT)) {
-                version (HUNT_AMQP_DEBUG) {
-                    warningf("New Proton Event: %s", eventType.toString());
+                if (eventType != (Type.TRANSPORT)) {
+                    warningf("New Proton Event: %s, ordinal: %d", eventType.toString(), type);
                 }
             }
+            // warningf("New Proton Event: %s, ordinal: %d", eventType.toString(), type);
 
-            int type = eventType.ordinal;
             switch (type) {
             case CONNECTION_REMOTE_OPEN: {
                     conn.fireRemoteOpen();

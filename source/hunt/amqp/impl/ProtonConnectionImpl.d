@@ -10,17 +10,9 @@
  */
 module hunt.amqp.impl.ProtonConnectionImpl;
 
-//import io.vertx.core.AsyncResult;
-//import io.vertx.core.Future;
-//import io.vertx.core.Handler;
-//import io.vertx.core.Vertx;
-//import io.vertx.core.impl.ContextInternal;
-//import io.vertx.core.impl.logging.Logger;
-//import io.vertx.core.impl.logging.LoggerFactory;
-//import io.vertx.core.net.NetClient;
-//import io.vertx.core.net.NetSocket;
 import hunt.Exceptions;
 import hunt.amqp.ProtonConnection;
+import hunt.amqp.ProtonHelper;
 import hunt.amqp.ProtonLinkOptions;
 import hunt.amqp.ProtonReceiver;
 import hunt.amqp.ProtonSender;
@@ -75,27 +67,18 @@ class ProtonConnectionImpl : ProtonConnection {
     }
 
     private hunt.proton.engine.Connection.Connection connection; //= Proton.connection();
-    //  private  ContextInternal connCtx;
     private ProtonTransport transport;
     private Handler!(Void)[] endHandlers;
 
     private Handler!ProtonConnection _openHandler; //= (result) -> {
     //  LOG.trace("Connection open completed");
     //};
-    private Handler!ProtonConnection _closeHandler; //= (result) -> {
-    //  if (result.succeeded()) {
-    //    LOG.trace("Connection closed");
-    //  } else {
-    //    LOG.warn("Connection closed with error", result.cause());
-    //  }
-    //};
-    private Handler!ProtonConnection _disconnectHandler; // = (connection) -> {
-    //  LOG.trace("Connection disconnected");
-    //};
+    private AsyncResultHandler!ProtonConnection _closeHandler;
+
+    private AmqpEventHandler!ProtonConnection _disconnectHandler; 
     //
-    //private Handler<ProtonSession> sessionOpenHandler = (session) -> {
-    //  session.setCondition(new ErrorCondition(Symbol.getSymbol("Not Supported"), ""));
-    //};
+    private AmqpEventHandler!ProtonSession _sessionOpenHandler;
+
     private Handler!ProtonSender _senderOpenHandler; //= (sender) -> {
     //  sender.setCondition(new ErrorCondition(Symbol.getSymbol("Not Supported"), ""));
     //};
@@ -107,6 +90,22 @@ class ProtonConnectionImpl : ProtonConnection {
     private hunt.net.Connection.Connection _conn;
 
     this(string hostname, hunt.net.Connection.Connection conn) {
+        _closeHandler = (result) {
+            if (result.succeeded()) {
+                trace("Connection closed");
+            } else {
+                warning("Connection closed with error", result.cause());
+            }
+        };
+
+        _disconnectHandler = (connection) {
+            trace("Connection disconnected");
+        };
+
+        _sessionOpenHandler = (session) {
+            session.setCondition(new ErrorCondition(Symbol.getSymbol("Not Supported"), new String("")));
+        };
+
         this.connection = Proton.connection();
         this.connection.setContext(this);
         string tmp = "vert.x-";
@@ -316,19 +315,18 @@ class ProtonConnectionImpl : ProtonConnection {
         return this;
     }
 
-    ProtonConnection closeHandler(Handler!ProtonConnection closeHandler) {
+    ProtonConnection closeHandler(AsyncResultHandler!ProtonConnection closeHandler) {
         this._closeHandler = closeHandler;
         return this;
     }
 
-    ProtonConnection disconnectHandler(Handler!ProtonConnection disconnectHandler) {
+    ProtonConnection disconnectHandler(AmqpEventHandler!ProtonConnection disconnectHandler) {
         this._disconnectHandler = disconnectHandler;
         return this;
     }
 
-    ProtonConnection sessionOpenHandler(Handler!ProtonSession remoteSessionOpenHandler) {
-        implementationMissing(false);
-        //this.sessionOpenHandler = remoteSessionOpenHandler;
+    ProtonConnection sessionOpenHandler(AmqpEventHandler!ProtonSession remoteSessionOpenHandler) {
+        this._sessionOpenHandler = remoteSessionOpenHandler;
         return this;
     }
 
@@ -370,18 +368,17 @@ class ProtonConnectionImpl : ProtonConnection {
     }
 
     void fireRemoteClose() {
-        implementationMissing(false);
-        warning("dsdsdssdsdssd");
-        // if (_closeHandler !is null) {
-        //     _closeHandler.handle(future(this, getRemoteCondition()));
-        // }
+        version(HUNT_DEBUG) info("Remote closed");
+        if (_closeHandler !is null) {
+            _closeHandler(ProtonHelper.future!(ProtonConnection)(this, getRemoteCondition()));
+        }
     }
 
     void fireDisconnect() {
         version(HUNT_DEBUG) info("Disconnecting...");
         transport = null;
         if (_disconnectHandler !is null) {
-            _disconnectHandler.handle(this);
+            _disconnectHandler(this);
         }
 
         foreach(Handler!Void handler; endHandlers) {

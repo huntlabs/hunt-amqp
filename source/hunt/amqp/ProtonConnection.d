@@ -17,11 +17,14 @@ import hunt.collection.Map;
 import hunt.proton.amqp.Symbol;
 import hunt.proton.amqp.transport.ErrorCondition;
 import hunt.proton.engine.Record;
-import hunt.String;
 import hunt.amqp.ProtonReceiver;
 import hunt.amqp.ProtonLinkOptions;
 import hunt.amqp.ProtonSender;
 import hunt.amqp.ProtonSession;
+
+// import hunt.Functions;
+import hunt.String;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="http://hiramchirino.com">Hiram Chirino</a>
@@ -275,7 +278,7 @@ interface ProtonConnection {
    *          the handler
    * @return the connection
    */
-  ProtonConnection closeHandler(Handler!ProtonConnection remoteCloseHandler);
+  ProtonConnection closeHandler(AsyncResultHandler!ProtonConnection closeHandler);
 
   /**
    * Sets a handler for when an AMQP Begin frame is received from the remote peer.
@@ -287,7 +290,7 @@ interface ProtonConnection {
    *          the handler
    * @return the connection
    */
-  ProtonConnection sessionOpenHandler(Handler!ProtonSession remoteSessionOpenHandler);
+  ProtonConnection sessionOpenHandler(AmqpEventHandler!ProtonSession remoteSessionOpenHandler);
 
   /**
    * Sets a handler for when an AMQP Attach frame is received from the remote peer for a sending link.
@@ -320,6 +323,6 @@ interface ProtonConnection {
    * @param disconnectHandler
    *          the handler
    */
-  ProtonConnection disconnectHandler(Handler!ProtonConnection disconnectHandler);
+  ProtonConnection disconnectHandler(AmqpEventHandler!ProtonConnection disconnectHandler);
 
 }

@@ -85,7 +85,7 @@ class ConnectionEventBaseHandler : NetConnectionHandler {
         // Need to flush here to get the SASL process going, or it will wait until calls on the connection are processed
         // later (e.g open()).
         version (HUNT_DEBUG)
-            logInfof("Connection %d done", connection.getId());
+            logInfof("Connection %d opened", connection.getId());
         conn.flush();
 
         // Thread.sleep(1.seconds);
