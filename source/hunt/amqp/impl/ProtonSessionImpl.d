@@ -46,255 +46,262 @@ import hunt.logging;
  */
 class ProtonSessionImpl : ProtonSession {
 
-  private  Session session;
-  private int autoLinkCounter = 0;
-  private Handler!ProtonSession _openHandler ;//= (result) -> {
-  //  LOG.trace("Session open completed");
-  //};
-  private Handler!ProtonSession _closeHandler; // = (result) -> {
-  //  if (result.succeeded()) {
-  //    LOG.trace("Session closed");
-  //  } else {
-  //    LOG.warn("Session closed with error", result.cause());
-  //  }
-  //};
-
-  this(Session session) {
-    this.session = session;
-    this.session.setContext(this);
-    session.setIncomingCapacity(2147483647);
-    _openHandler = new class Handler!ProtonSession
-    {
-      void handle(ProtonSession var1)
-      {
-          version(HUNT_DEBUG) logInfo("Session open completed");
-      }
-    };
-
-    _closeHandler = new class Handler!ProtonSession
-    {
-      void handle(ProtonSession var1)
-      {
-        error("Session closed with error");
-      }
-    };
-
-  }
-
-  
-  ProtonConnection getConnection() {
-    return getConnectionImpl();
-  }
-
-  ProtonConnectionImpl getConnectionImpl() {
-    return cast(ProtonConnectionImpl) (this.session.getConnection().getContext());
-  }
-
-  long getOutgoingWindow() {
-    return session.getOutgoingWindow();
-  }
-
-  
-  ProtonSession setIncomingCapacity(int bytes) {
-    session.setIncomingCapacity(bytes);
-    return this;
-  }
-
-  int getOutgoingBytes() {
-    return session.getOutgoingBytes();
-  }
-
-  EndpointState getRemoteState() {
-    return session.getRemoteState();
-  }
-
-  int getIncomingBytes() {
-    return session.getIncomingBytes();
-  }
-
-  
-  ErrorCondition getRemoteCondition() {
-    return session.getRemoteCondition();
-  }
-
-  
-  int getIncomingCapacity() {
-    return session.getIncomingCapacity();
-  }
-
-  EndpointState getLocalState() {
-    return session.getLocalState();
-  }
-
-  
-  ProtonSession setCondition(ErrorCondition condition) {
-    session.setCondition(condition);
-    return this;
-  }
-
-  
-  ErrorCondition getCondition() {
-    return session.getCondition();
-  }
-
-  void setOutgoingWindow(long outgoingWindowSize) {
-    session.setOutgoingWindow(outgoingWindowSize);
-  }
-
-  
-  ProtonSessionImpl open() {
-    session.open();
-    version(HUNT_AMQP_DEBUG) logInfo("session open");
-    getConnectionImpl().flush();
-    return this;
-  }
-
-  
-  ProtonSessionImpl close() {
-    version(HUNT_AMQP_DEBUG) logInfo("session close");
-    session.close();
-    getConnectionImpl().flush();
-    return this;
-  }
-
-  
-  ProtonSessionImpl openHandler(Handler!ProtonSession openHandler) {
-    this._openHandler = openHandler;
-    return this;
-  }
-
-
-  ProtonSessionImpl closeHandler(Handler!ProtonSession closeHandler) {
-    this._closeHandler = closeHandler;
-    return this;
-  }
-
-  private string generateLinkName() {
-    // TODO: include useful details in name, like address and container?
-    return "auto-" ~ to!string((autoLinkCounter++));
-  }
-
-  private string getOrCreateLinkName(ProtonLinkOptions linkOptions) {
-    return linkOptions.getLinkName() is null ? generateLinkName() : linkOptions.getLinkName();
-  }
-
-  
-  ProtonReceiver createReceiver(string address) {
-    return createReceiver(address, new ProtonLinkOptions());
-  }
-
-  
-  ProtonReceiver createReceiver(string address, ProtonLinkOptions receiverOptions) {
-    Receiver receiver = session.receiver(getOrCreateLinkName(receiverOptions));
-
-    Symbol[] outcomes = [ Accepted.DESCRIPTOR_SYMBOL, Rejected.DESCRIPTOR_SYMBOL,
-        Released.DESCRIPTOR_SYMBOL, Modified.DESCRIPTOR_SYMBOL ];
-
-    Source source = new Source();
-    source.setAddress(new String(address));
-    //source.setOutcomes(new ArrayList!Symbol(outcomes));
-    source.setDefaultOutcome(Released.getInstance());
-    if(receiverOptions.isDynamic()) {
-      source.setDynamic(new Boolean(true));
-    }
-
-    Target target = new Target();
-
-    receiver.setSource(source);
-    receiver.setTarget(target);
-
-    ProtonReceiverImpl r = new ProtonReceiverImpl(receiver);
-    //r.openHandler((result) -> {
-    //  LOG.trace("Receiver open completed");
-    //});
-    //r.closeHandler((result) -> {
+    private  Session session;
+    private int autoLinkCounter = 0;
+    private Handler!ProtonSession _openHandler ;//= (result) -> {
+    //  LOG.trace("Session open completed");
+    //};
+    private Handler!ProtonSession _closeHandler; // = (result) -> {
     //  if (result.succeeded()) {
-    //    LOG.trace("Receiver closed");
+    //    LOG.trace("Session closed");
     //  } else {
-    //    LOG.warn("Receiver closed with error", result.cause());
+    //    LOG.warn("Session closed with error", result.cause());
     //  }
-    //});
+    //};
 
-    // Default to at-least-once
-    r.setQoS(ProtonQoS.AT_LEAST_ONCE);
+    this(Session session) {
+        this.session = session;
+        this.session.setContext(this);
+        session.setIncomingCapacity(2147483647);
+        _openHandler = new class Handler!ProtonSession
+        {
+            void handle(ProtonSession var1)
+            {
+                version(HUNT_DEBUG) logInfo("Session open completed");
+            }
+        };
 
-    return r;
-  }
+        _closeHandler = new class Handler!ProtonSession
+        {
+            void handle(ProtonSession var1)
+            {
+                error("Session closed with error");
+            }
+        };
 
-  
-  ProtonSender createSender(string address) {
-    return createSender(address, new ProtonLinkOptions());
-  }
-
-  
-  ProtonSender createSender(string address, ProtonLinkOptions senderOptions) {
-    Sender sender = session.sender(getOrCreateLinkName(senderOptions));
-
-    Symbol[] outcomes = [ Accepted.DESCRIPTOR_SYMBOL, Rejected.DESCRIPTOR_SYMBOL,
-        Released.DESCRIPTOR_SYMBOL, Modified.DESCRIPTOR_SYMBOL ];
-    Source source = new Source();
-    //source.setOutcomes(new ArrayList!Symbol(outcomes));
-
-    Target target = new Target();
-    target.setAddress(address is null ? null : new String(address));
-    if(senderOptions.isDynamic()) {
-      target.setDynamic(new Boolean(true));
     }
 
-    sender.setSource(source);
-    sender.setTarget(target);
-
-    ProtonSenderImpl s = new ProtonSenderImpl(sender);
-    if (address is null) {
-      s.setAnonymousSender(true);
+    
+    ProtonConnection getConnection() {
+        return getConnectionImpl();
     }
 
-    //s.openHandler((result) -> {
-    //  LOG.trace("Sender open completed");
-    //});
-    //s.closeHandler((result) -> {
-    //  if (result.succeeded()) {
-    //    LOG.trace("Sender closed");
-    //  } else {
-    //    LOG.warn("Sender closed with error", result.cause());
-    //  }
-    //});
-
-    // Default to at-least-once
-    s.setQoS(ProtonQoS.AT_LEAST_ONCE);
-
-    return s;
-  }
-
-  
-  Record attachments() {
-    return session.attachments();
-  }
-
-  
-  void free() {
-    session.free();
-    getConnectionImpl().flush();
-  }
-
-  /////////////////////////////////////////////////////////////////////////////
-  //
-  // Implementation details hidden from api.
-  //
-  /////////////////////////////////////////////////////////////////////////////
-  void fireRemoteOpen() {
-    //implementationMissing(false);
-    if (_openHandler !is null)
-    {
-      _openHandler.handle(null);
+    ProtonConnectionImpl getConnectionImpl() {
+        return cast(ProtonConnectionImpl) (this.session.getConnection().getContext());
     }
-  }
 
-  void fireRemoteClose() {
-    //implementationMissing(false);
-    if (_closeHandler !is null) {
-      _closeHandler.handle(null);
+    long getOutgoingWindow() {
+        return session.getOutgoingWindow();
     }
-  }
+
+    
+    ProtonSession setIncomingCapacity(int bytes) {
+        session.setIncomingCapacity(bytes);
+        return this;
+    }
+
+    int getOutgoingBytes() {
+        return session.getOutgoingBytes();
+    }
+
+    EndpointState getRemoteState() {
+        return session.getRemoteState();
+    }
+
+    int getIncomingBytes() {
+        return session.getIncomingBytes();
+    }
+
+    
+    ErrorCondition getRemoteCondition() {
+        return session.getRemoteCondition();
+    }
+
+    
+    int getIncomingCapacity() {
+        return session.getIncomingCapacity();
+    }
+
+    EndpointState getLocalState() {
+        return session.getLocalState();
+    }
+
+    
+    ProtonSession setCondition(ErrorCondition condition) {
+        session.setCondition(condition);
+        return this;
+    }
+
+    
+    ErrorCondition getCondition() {
+        return session.getCondition();
+    }
+
+    void setOutgoingWindow(long outgoingWindowSize) {
+        session.setOutgoingWindow(outgoingWindowSize);
+    }
+
+    
+    ProtonSessionImpl open() {
+        session.open();
+        version(HUNT_AMQP_DEBUG) logInfo("session open");
+        getConnectionImpl().flush();
+        return this;
+    }
+
+    
+    ProtonSessionImpl close() {
+        version(HUNT_AMQP_DEBUG) logInfo("session close");
+        session.close();
+        getConnectionImpl().flush();
+        return this;
+    }
+
+    
+    ProtonSessionImpl openHandler(Handler!ProtonSession openHandler) {
+        this._openHandler = openHandler;
+        return this;
+    }
+
+
+    ProtonSessionImpl closeHandler(Handler!ProtonSession closeHandler) {
+        this._closeHandler = closeHandler;
+        return this;
+    }
+
+    private string generateLinkName() {
+        // TODO: include useful details in name, like address and container?
+        return "auto-" ~ to!string((autoLinkCounter++));
+    }
+
+    private string getOrCreateLinkName(ProtonLinkOptions linkOptions) {
+        return linkOptions.getLinkName() is null ? generateLinkName() : linkOptions.getLinkName();
+    }
+
+    
+    ProtonReceiver createReceiver(string address) {
+        return createReceiver(address, new ProtonLinkOptions());
+    }
+
+    
+    ProtonReceiver createReceiver(string address, ProtonLinkOptions receiverOptions) {
+        Receiver receiver = session.receiver(getOrCreateLinkName(receiverOptions));
+
+        Symbol[] outcomes = [ Accepted.DESCRIPTOR_SYMBOL, Rejected.DESCRIPTOR_SYMBOL,
+                Released.DESCRIPTOR_SYMBOL, Modified.DESCRIPTOR_SYMBOL ];
+
+        Source source = new Source();
+        source.setAddress(new String(address));
+        //source.setOutcomes(new ArrayList!Symbol(outcomes));
+        source.setDefaultOutcome(Released.getInstance());
+        if(receiverOptions.isDynamic()) {
+            source.setDynamic(new Boolean(true));
+        }
+
+        Target target = new Target();
+
+        receiver.setSource(source);
+        receiver.setTarget(target);
+
+        ProtonReceiverImpl r = new ProtonReceiverImpl(receiver);
+        //r.openHandler((result) -> {
+        //  LOG.trace("Receiver open completed");
+        //});
+        //r.closeHandler((result) -> {
+        //  if (result.succeeded()) {
+        //    LOG.trace("Receiver closed");
+        //  } else {
+        //    LOG.warn("Receiver closed with error", result.cause());
+        //  }
+        //});
+
+        // Default to at-least-once
+        r.setQoS(ProtonQoS.AT_LEAST_ONCE);
+
+        return r;
+    }
+
+    
+    ProtonSender createSender(string address) {
+        return createSender(address, new ProtonLinkOptions());
+    }
+
+    
+    ProtonSender createSender(string address, ProtonLinkOptions senderOptions) {
+        Sender sender = session.sender(getOrCreateLinkName(senderOptions));
+
+        Symbol[] outcomes = [ Accepted.DESCRIPTOR_SYMBOL, Rejected.DESCRIPTOR_SYMBOL,
+                Released.DESCRIPTOR_SYMBOL, Modified.DESCRIPTOR_SYMBOL ];
+        Source source = new Source();
+        //source.setOutcomes(new ArrayList!Symbol(outcomes));
+
+        Target target = new Target();
+        target.setAddress(address is null ? null : new String(address));
+        if(senderOptions.isDynamic()) {
+            target.setDynamic(new Boolean(true));
+        }
+
+        sender.setSource(source);
+        sender.setTarget(target);
+
+        ProtonSenderImpl s = new ProtonSenderImpl(sender);
+        if (address is null) {
+            s.setAnonymousSender(true);
+        }
+
+        //s.openHandler((result) -> {
+        //  LOG.trace("Sender open completed");
+        //});
+        //s.closeHandler((result) -> {
+        //  if (result.succeeded()) {
+        //    LOG.trace("Sender closed");
+        //  } else {
+        //    LOG.warn("Sender closed with error", result.cause());
+        //  }
+        //});
+
+        // Default to at-least-once
+        s.setQoS(ProtonQoS.AT_LEAST_ONCE);
+
+        return s;
+    }
+
+    
+    Record attachments() {
+        return session.attachments();
+    }
+
+    
+    void free() {
+        session.free();
+        getConnectionImpl().flush();
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    //
+    // Implementation details hidden from api.
+    //
+    /////////////////////////////////////////////////////////////////////////////
+    void fireRemoteOpen() {
+        version(HUNT_DEBUG) {
+            string s = this.session.getConnection().getRemoteHostname();
+            warningf("The remote opened: %s", s);
+        }
+        if (_openHandler !is null)
+        {
+            _openHandler.handle(null);
+        }
+    }
+
+    void fireRemoteClose() {
+        version(HUNT_DEBUG) {
+            string s = this.session.getConnection().getRemoteHostname();
+            warningf("The remote closed: %s", s);
+        }
+
+        if (_closeHandler !is null) {
+            _closeHandler.handle(null);
+        }
+    }
 
 }

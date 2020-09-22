@@ -164,7 +164,12 @@ class ConnectionEventBaseHandler : NetConnectionHandler {
     override void messageReceived(Connection connection, Object message) { //ByteBuffer {
         ByteBuffer buf = cast(ByteBuffer) message;
         if (_msgCallBack !is null) {
-            _msgCallBack(connection, buf);
+            try {
+                _msgCallBack(connection, buf);
+            } catch(Throwable ex) {
+                warning(ex.msg);
+                version(HUNT_DEBUG) warning(ex);
+            }
         }
     }
 

@@ -375,7 +375,7 @@ class ProtonConnectionImpl : ProtonConnection {
     }
 
     void fireDisconnect() {
-        version(HUNT_AMQP_DEBUG) info("Disconnecting...");
+        version(HUNT_DEBUG) info("Disconnecting...");
         transport = null;
         if (_disconnectHandler !is null) {
             _disconnectHandler(this);
