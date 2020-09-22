@@ -212,8 +212,8 @@ abstract class ProtonLinkImpl(T) : ProtonLink!T {
 
   public T setQoS(ProtonQoS qos) {
     int type = qos.ordinal();
-    const int AT_MOST_ONCE = ProtonQoS.AT_MOST_ONCE.ordinal;
-    const int AT_LEAST_ONCE = ProtonQoS.AT_LEAST_ONCE.ordinal;
+    enum int AT_MOST_ONCE = ProtonQoS.AT_MOST_ONCE.ordinal;
+    enum int AT_LEAST_ONCE = ProtonQoS.AT_LEAST_ONCE.ordinal;
     switch (type) {
     case AT_MOST_ONCE:
       link.setSenderSettleMode(SenderSettleMode.SETTLED);
